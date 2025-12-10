@@ -1,0 +1,7 @@
+{
+  "name": "Snow & Mow - On-Demand Services",
+  "description": "A comprehensive on-demand platform connecting homeowners with snow removal and lawn care professionals. Features real-time tracking, role-based dashboards, and AI support.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

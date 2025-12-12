@@ -128,7 +128,7 @@ const AuthPage: React.FC = () => {
 
           <div className="mt-12 text-center">
             <button onClick={() => { setSelectedRole('ADMIN'); fillDemoCreds(); }} className="text-sm text-slate-400 hover:text-slate-600">
-              Admin Portal Access
+            
             </button>
           </div>
         </div>

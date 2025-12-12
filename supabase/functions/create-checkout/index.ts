@@ -1,7 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import Stripe from 'https://esm.sh/stripe@12.0.0?target=deno'
+import { serve } from 'https://deno.land/std/http/server.ts';
+import Stripe from 'https://esm.sh/stripe@14.1.0'
 
-// Initialize Stripe with the Secret Key you saved in Supabase Dashboard
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   apiVersion: '2022-11-15',
 })

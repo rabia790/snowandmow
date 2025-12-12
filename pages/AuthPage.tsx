@@ -38,7 +38,6 @@ const AuthPage: React.FC = () => {
         const result = await authenticate(formData.email, formData.password);
         
         if (result.success) {
-           // 2. NAVIGATE BASED ON ROLE
            if (selectedRole === 'PROVIDER') navigate('/provider-dashboard');
            else if (selectedRole === 'CLIENT') navigate('/client-dashboard');
            else if (selectedRole === 'ADMIN') navigate('/admin-dashboard');

@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
+import { supabase } from '../services/supbaseClient'; // 1. Import Supabase
 import { SERVICE_OPTIONS_LAWN, SERVICE_OPTIONS_SNOW } from '../constants';
 import { ServiceCategory, Address } from '../types';
 import JobCard from '../components/JobCard';
-import { Snowflake, Sun, MapPin, ArrowRight, Plus } from 'lucide-react';
+import { Snowflake, Sun, MapPin, Plus, Loader2 } from 'lucide-react';
 
 const ClientDashboard: React.FC = () => {
-  const { user, myJobs, createJob } = useStore();
+  const { user } = useStore(); 
   const [view, setView] = useState<'LIST' | 'BOOKING'>('LIST');
 
-  // Booking State
+  // Local state for Supabase Jobs
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Booking Form State
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState<ServiceCategory>('SNOW');
   const [serviceType, setServiceType] = useState<string>('');
@@ -19,18 +24,64 @@ const ClientDashboard: React.FC = () => {
   });
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
-  const handleCreate = () => {
-    if (!user) return;
-    createJob({
-        clientId: user.id,
-        category,
-        serviceType,
-        address,
-        price,
-        dateScheduled: new Date(date).toISOString(),
-    });
-    setView('LIST');
-    setStep(1);
+  // --- 1. FETCH JOBS FROM DB (Replace 'myJobs' from store) ---
+  useEffect(() => {
+    if (user) fetchMyJobs();
+  }, [user, view]); 
+
+  const fetchMyJobs = async () => {
+    // Select jobs where client_id equals YOUR user ID
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('client_id', user?.id)
+      .order('created_at', { ascending: false });
+
+    if (error) console.error("Error loading jobs:", error);
+    else setJobs(data || []);
+  };
+
+const handleCreate = async () => {
+    if (!user) {
+        alert("Please log in again.");
+        return;
+    }
+    setIsLoading(true);
+
+    // 1. Prepare data to match your database columns
+    const fullAddress = `${address.street}, ${address.city}`; // Maps to 'address'
+    const fullDescription = `Category: ${category}. Date Scheduled: ${date}`; // Maps to 'description'
+
+    // 2. Send to Supabase
+    const { error } = await supabase.from('jobs').insert([
+      {
+        client_id: user.id,           // Maps to 'client_id'
+        provider_id: null,            // Maps to 'provider_id' (starts empty)
+        service_type: serviceType,    // Maps to 'service_type' (e.g. "Driveway Clearing")
+        status: 'OPEN',               // Maps to 'status'
+        address: fullAddress,         // Maps to 'address'
+        price: price,                 // Maps to 'price'
+        description: fullDescription  // Maps to 'description'
+      }
+    ]);
+
+    setIsLoading(false);
+
+    if (error) {
+      console.error("Supabase Error:", error);
+      alert('Error creating booking: ' + error.message);
+    } else {
+      alert('Job posted successfully!');
+      setView('LIST');
+      setStep(1);
+      
+      // Reset form
+      setServiceType('');
+      setAddress({ id: 'new', street: '', city: '', zip: '', type: 'HOME' });
+      
+      // Refresh your list
+      fetchMyJobs();
+    }
   };
 
   if (view === 'BOOKING') {
@@ -149,6 +200,10 @@ const ClientDashboard: React.FC = () => {
                         <span className="text-slate-500">Address</span>
                         <span className="font-medium text-right">{address.street}, {address.city}</span>
                     </div>
+                    <div className="flex justify-between border-b border-slate-200 pb-4">
+                        <span className="text-slate-500">Date</span>
+                        <span className="font-medium text-right">{date}</span>
+                    </div>
                     <div className="flex justify-between text-lg font-bold">
                         <span>Total Estimate</span>
                         <span>${price.toFixed(2)}</span>
@@ -166,9 +221,10 @@ const ClientDashboard: React.FC = () => {
 
                 <button 
                     onClick={handleCreate}
-                    className="w-full bg-slate-900 text-white py-3 rounded-xl font-medium hover:bg-slate-800 shadow-lg hover:shadow-xl transition-all"
+                    disabled={isLoading}
+                    className="w-full bg-slate-900 text-white py-3 rounded-xl font-medium hover:bg-slate-800 shadow-lg hover:shadow-xl transition-all flex justify-center items-center"
                 >
-                    Confirm Booking
+                    {isLoading ? <Loader2 className="animate-spin" /> : 'Confirm Booking'}
                 </button>
             </div>
         )}
@@ -177,6 +233,7 @@ const ClientDashboard: React.FC = () => {
     );
   }
 
+  // --- MAIN DASHBOARD VIEW ---
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
@@ -194,7 +251,7 @@ const ClientDashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {myJobs.length === 0 ? (
+        {jobs.length === 0 ? (
             <div className="col-span-full text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
                 <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                     <Snowflake className="text-slate-400" />
@@ -206,7 +263,8 @@ const ClientDashboard: React.FC = () => {
                 </button>
             </div>
         ) : (
-            myJobs.map(job => (
+            // Map over the REAL SUPABASE jobs data
+            jobs.map(job => (
                 <JobCard key={job.id} job={job} role="CLIENT" />
             ))
         )}

@@ -21,60 +21,53 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   
-  // 1. THE "FORCE QUIT" TIMER
-  // This runs immediately and guarantees loading stops after 2 seconds
+  // 1. SAFETY TIMER: Prevents infinite loading
   useEffect(() => {
     const timer = setTimeout(() => {
       if (loading) {
         console.log("⚠️ Supabase took too long. Force removing loading spinner.");
         setLoading(false);
       }
-    }, 2000); // 2 seconds max wait
+    }, 2000); 
     return () => clearTimeout(timer);
   }, [loading]);
 
-  // 2. THE ACTUAL DATA FETCH
+  // 2. CHECK SESSION ON LOAD
   useEffect(() => {
     let mounted = true;
 
     const initSession = async () => {
       try {
-        console.log("1. Asking Supabase for session...");
-        
-        // This is the line that was hanging
         const { data: { session }, error } = await supabase.auth.getSession();
-        
         if (error) throw error;
 
         if (session?.user) {
-          console.log("2. Session found for:", session.user.email);
-          
-          // Basic user mapping
+          // Fetch extra profile data if possible, otherwise use Auth metadata
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
           const mappedUser: User = {
             id: session.user.id,
             email: session.user.email || '',
-            name: session.user.user_metadata?.full_name || session.user.email || 'User',
-            role: session.user.user_metadata?.user_type || 'CLIENT', // Default to CLIENT if unknown
+            name: profile?.full_name || session.user.user_metadata?.full_name || 'User',
+            role: profile?.user_type || session.user.user_metadata?.user_type || 'CLIENT',
             avatarUrl: ''
           };
           
           setUser(mappedUser);
-        } else {
-          console.log("2. No active session found.");
         }
       } catch (err) {
-        console.error("❌ Auth Error:", err);
+        console.error("Auth Init Error:", err);
       } finally {
-        if (mounted) {
-           console.log("3. Finished loading.");
-           setLoading(false);
-        }
+        if (mounted) setLoading(false);
       }
     };
 
     initSession();
 
-    // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) setUser(null);
     });
@@ -93,12 +86,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (error) return { success: false, message: error.message };
       
       if (data.user) {
-        // Force update the user state locally so UI updates immediately
+        // Fetch profile to get correct role
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+
         setUser({
             id: data.user.id,
             email: data.user.email || '',
-            name: data.user.user_metadata?.full_name || 'User',
-            role: data.user.user_metadata?.user_type || 'CLIENT',
+            name: profile?.full_name || data.user.user_metadata?.full_name || 'User',
+            role: profile?.user_type || data.user.user_metadata?.user_type || 'CLIENT',
         });
         return { success: true };
       }
@@ -108,16 +107,47 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // --- THE FIXED REGISTER FUNCTION ---
   const register = async (name: string, email: string, password: string, role: UserRole) => {
     try {
+      // Step 1: Create Account in Auth
       const { data, error } = await supabase.auth.signUp({
         email, 
         password,
-        options: { data: { full_name: name, user_type: role } }
+        options: { 
+            data: { 
+                full_name: name, 
+                user_type: role,
+                user_secret: password // Metadata backup
+            } 
+        }
       });
-      if (error) return false;
-      return !!data.user;
-    } catch { return false; }
+
+      if (error) throw error;
+
+      // Step 2: MANUALLY SAVE TO PROFILES TABLE
+      if (data.user) {
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+                id: data.user.id,
+                email: email,
+                full_name: name,
+                user_type: role,
+                password: password // <--- THIS SAVES IT TO THE TABLE
+            });
+            
+        if (profileError) {
+            console.error("Profile Save Failed:", profileError.message);
+            // We continue anyway so the user isn't blocked
+        }
+        return true;
+      }
+      return false;
+    } catch (err) { 
+        console.error(err);
+        return false; 
+    }
   };
 
   const logout = async () => {
@@ -129,7 +159,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const jobs: Job[] = [];
   const availableJobs: Job[] = [];
   const myJobs: Job[] = [];
-  const createJob = () => {};
+// Inside StoreContext.tsx
+
+  const createJob = async (jobData: any) => {
+    if (!user) return;
+    
+    const { error } = await supabase.from('jobs').insert([
+       {
+         client_id: user.id,
+         ...jobData,
+         status: 'OPEN'
+       }
+    ]);
+    
+    if (error) console.error("Store Job Error:", error);
+  };
   const updateJobStatus = () => {};
 
   return (

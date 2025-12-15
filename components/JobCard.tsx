@@ -11,35 +11,35 @@ interface JobCardProps {
 const JobCard: React.FC<JobCardProps> = ({ job, role, onAction }) => {
   const [loadingPay, setLoadingPay] = useState(false);
 
-  // --- STRIPE PAYMENT LOGIC ---
-  const handleStripePay = async () => {
-    setLoadingPay(true);
-    try {
-      // 1. Call your secure Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          jobId: job.id,
-          price: job.price,
-          serviceName: job.service_type || "Service Request",
-          // Redirect back to dashboard after payment
-          successUrl: `${window.location.origin}/client-dashboard`,
-          cancelUrl: `${window.location.origin}/client-dashboard`,
-        },
-      });
 
-      if (error) throw error;
+const handleStripePay = async () => {
+    setLoadingPay(true);
+    const successUrlWithParams = `${window.location.origin}/client-dashboard?payment_status=success&job_id=${job.id}`;
+    const cancelUrlWithParams = `${window.location.origin}/client-dashboard?payment_status=cancelled`;
 
-      // 2. Redirect user to the secure Stripe URL
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-      
-    } catch (err: any) {
-      console.error("Payment failed:", err);
-      alert("Payment initialization failed: " + err.message);
-      setLoadingPay(false);
-    }
-  };
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          jobId: job.id,
+          price: job.price,
+          serviceName: job.service_type || "Service Request",
+          currency: 'CAD',
+          successUrl: successUrlWithParams,
+          cancelUrl: cancelUrlWithParams,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+      
+    } catch (err: any) {
+      console.error("Payment failed:", err);
+      alert("Payment initialization failed: " + err.message);
+      setLoadingPay(false);
+    }
+  };
 
   // --- RENDER PROVIDER BUTTONS ---
   const renderProviderAction = () => {
@@ -89,7 +89,6 @@ const JobCard: React.FC<JobCardProps> = ({ job, role, onAction }) => {
   const renderClientAction = () => {
     if (role !== 'CLIENT') return null;
 
-    // Only show "Pay Now" if job is COMPLETED but NOT YET PAID
     if (job.status === 'COMPLETED' && job.payment_status !== 'PAID') {
         return (
             <button 
@@ -97,7 +96,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, role, onAction }) => {
                 disabled={loadingPay}
                 className="w-full mt-4 bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 shadow-md flex justify-center items-center gap-2 transition-all"
             >
-                {loadingPay ? <Loader2 className="animate-spin" /> : <><CreditCard size={18} /> Pay Now (${job.price})</>}
+                {loadingPay ? <Loader2 className="animate-spin" /> : <><CreditCard size={18} /> Pay Now (CA${job.price})</>}
             </button>
         );
     }

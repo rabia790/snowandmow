@@ -111,6 +111,23 @@ const ProviderDashboard: React.FC = () => {
       }
   };
 
+const grossRevenue = React.useMemo(() => {
+    // Sum the job.price for ALL jobs marked 'COMPLETED' by this provider
+    const totalGross = mySchedule.reduce((sum, job) => {
+        // We only care if the job workflow is complete
+        if (job.status === 'COMPLETED') {
+            // Safely convert the job's price (client's payment) to a number
+            const jobPrice = parseFloat(job.price) || 0;
+            return sum + jobPrice; 
+        }
+        return sum;
+    }, 0);
+
+    return totalGross.toFixed(2);
+}, [mySchedule]);
+
+
+
   return (
     <div>
         {/* Status Header */}
@@ -120,7 +137,7 @@ const ProviderDashboard: React.FC = () => {
                 <div className="flex items-center mt-2 space-x-4">
                     <div className="flex flex-col">
                         <span className="text-xs text-slate-400 uppercase tracking-wide">Earnings Today</span>
-                        <span className="text-xl font-mono text-green-400">$0.00</span>
+                        <span className="text-xl font-mono text-green-400">CA${grossRevenue}</span>
                     </div>
                 </div>
             </div>

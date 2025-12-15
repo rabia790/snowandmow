@@ -29,6 +29,7 @@ const ClientDashboard: React.FC = () => {
     if (user) fetchMyJobs();
   }, [user, view]); 
 
+
   const fetchMyJobs = async () => {
     // Select jobs where client_id equals YOUR user ID
     const { data, error } = await supabase
@@ -40,6 +41,21 @@ const ClientDashboard: React.FC = () => {
     if (error) console.error("Error loading jobs:", error);
     else setJobs(data || []);
   };
+// Inside ClientDashboard.tsx, near your existing useEffect hook
+
+useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentSuccess = params.get('payment_status') === 'success';
+    const paidJobId = params.get('job_id'); 
+
+    if (paymentSuccess && paidJobId) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        const updatedJobs = jobs.map(job => 
+            job.id === paidJobId ? { ...job, payment_status: 'PAID' } : job
+        );
+        setJobs(updatedJobs);  
+    }
+}, [jobs, fetchMyJobs]);
 
 const handleCreate = async () => {
     if (!user) {
@@ -206,7 +222,7 @@ const handleCreate = async () => {
                     </div>
                     <div className="flex justify-between text-lg font-bold">
                         <span>Total Estimate</span>
-                        <span>${price.toFixed(2)}</span>
+                        <span>C${price.toFixed(2)}</span>
                     </div>
                 </div>
                 

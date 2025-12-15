@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 import AuthPage from './pages/AuthPage';
 import ClientDashboard from './pages/ClientDashboard';
 import ProviderDashboard from './pages/ProviderDashboard';
+import LApp from './components/LandingPage';
 
 // 1. Protected Route Component
 // This prevents users from accessing dashboards without logging in
@@ -22,7 +23,7 @@ const ProtectedRoute = ({ children, allowedRole }: { children: React.ReactNode, 
 
   // If not logged in, redirect to login
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   // If logged in but wrong role, redirect
@@ -37,8 +38,9 @@ const ProtectedRoute = ({ children, allowedRole }: { children: React.ReactNode, 
 const AppContent: React.FC = () => {
   return (
     <Routes>
+      <Route path="/" element={<LApp />} />
       {/* Public Login Route */}
-      <Route path="/" element={<AuthPage />} />
+      <Route path="/auth" element={<AuthPage />} />
 
       {/* Protected Client Dashboard */}
       <Route 

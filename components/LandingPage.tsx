@@ -39,40 +39,7 @@ const MobileMenu = ({ isOpen, toggleMenu }) => (
   </div>
 );
 
-const NavBar = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
-  return (
-    <nav className="sticky top-0 z-50 bg-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <a href="#" className="flex items-center space-x-2">
-            <Snowflake className="w-6 h-6 text-blue-600" />
-            <Sun className="w-6 h-6 text-green-600" />
-            <span className="text-xl font-extrabold text-slate-900">Snow & Mow</span>
-          </a>
-          
-          {/* Desktop Menu */}
-          <div className="hidden md:flex space-x-6 items-center">
-            <NavLink href="#how-it-works">How It Works</NavLink>
-            <NavLink href="#provider-pitch">For Providers</NavLink>
-            <NavLink href="#contact">Contact</NavLink>
-            
-         
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button id="mobile-menu-button" onClick={toggleMenu} className="md:hidden text-slate-600 hover:text-blue-600">
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-      </div>
-      <MobileMenu isOpen={isMobileMenuOpen} toggleMenu={toggleMenu} />
-    </nav>
-  );
-};
 
 const HeroSection = () => (
   <header style={customStyles.heroBg} className="py-24 sm:py-32 lg:py-40">
@@ -285,52 +252,6 @@ const handleSubmit = (e) => {
 };
 
 
-const Footer = () => (
-  <footer className="bg-slate-800 py-12" id="contact">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Logo & Mission */}
-        <div>
-          <a href="#" className="flex items-center space-x-2 mb-4">
-            <Snowflake className="w-6 h-6 text-blue-400" />
-            <Sun className="w-6 h-6 text-green-400" />
-            <span className="text-xl font-extrabold">Snow & Mow</span>
-          </a>
-          <p className="text-sm text-slate-400">Making yard maintenance effortless for homeowners and profitable for Pros.</p>
-        </div>
-
-        {/* Company Links 
-        <div>
-          <h4 className="font-bold mb-3">Company</h4>
-          <ul className="space-y-2 text-sm text-slate-400">
-            <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
-          </ul>
-        </div>
-
-       
-        <div>
-          <h4 className="font-bold mb-3">Legal</h4>
-          <ul className="space-y-2 text-sm text-slate-400">
-            <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Service Guarantee</a></li>
-          </ul>
-        </div>*/}
-
-        {/* Contact & Social */}
-        <div>
-          <h4 className="font-bold mb-3">Connect</h4>
-          <p className="text-sm text-slate-400 mb-4">Email: manager@cygnisoft.com</p>
-        </div>
-      </div>
-      <div className="mt-12 border-t border-slate-700 pt-6 text-center text-sm text-slate-500">
-        &copy; 2025 Snow & Mow. All rights reserved.
-      </div>
-    </div>
-  </footer>
-);
 
 
 // --- Main App Component ---
@@ -341,9 +262,8 @@ const LApp = () => {
   }, []);
 
   return (
-    // The body styling is applied here. In a real app, this would be in index.css
     <div style={{ fontFamily: "'Inter', sans-serif", backgroundColor: '#f8fafc' }}>
-      <NavBar />
+      
       <main>
         <HeroSection />
         <ValuePropositionSection />
@@ -351,7 +271,7 @@ const LApp = () => {
         <ProviderPitchSection />
          <ContactSection />
       </main>
-      <Footer />
+      
     </div>
   );
 };

@@ -25,7 +25,6 @@ const AuthPage: React.FC = () => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-
     try {
       if (!selectedRole) {
         setError("Please select a role first.");
@@ -34,7 +33,6 @@ const AuthPage: React.FC = () => {
       }
 
       if (authMode === 'LOGIN') {    
-        // 1. USE STORE AUTHENTICATE
         const result = await authenticate(formData.email, formData.password);
         
         if (result.success) {
@@ -46,7 +44,6 @@ const AuthPage: React.FC = () => {
         }
 
       } else {
-        // 3. USE STORE REGISTER
         const success = await register(formData.name, formData.email, formData.password, selectedRole);
         
         if (success) {
@@ -65,7 +62,6 @@ const AuthPage: React.FC = () => {
     }
   };
 
-  // Helper for quick demo login
   const fillDemoCreds = () => {
     if (selectedRole === 'CLIENT') {
         setFormData({ ...formData, email: 'alice@example.com', password: 'password' });
@@ -76,7 +72,6 @@ const AuthPage: React.FC = () => {
     }
   };
 
-  // 1. Landing Screen - Role Selection
   if (!selectedRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">

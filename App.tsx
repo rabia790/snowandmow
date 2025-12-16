@@ -7,12 +7,10 @@ import ClientDashboard from './pages/ClientDashboard';
 import ProviderDashboard from './pages/ProviderDashboard';
 import LApp from './components/LandingPage';
 
-// 1. Protected Route Component
-// This prevents users from accessing dashboards without logging in
+
 const ProtectedRoute = ({ children, allowedRole }: { children: React.ReactNode, allowedRole?: string }) => {
   const { user, loading } = useStore();
 
-  // If checking session, show spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
@@ -21,12 +19,10 @@ const ProtectedRoute = ({ children, allowedRole }: { children: React.ReactNode, 
     );
   }
 
-  // If not logged in, redirect to login
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // If logged in but wrong role, redirect
   if (allowedRole && user.role !== allowedRole) {
     return <Navigate to="/" replace />;
   }
@@ -34,15 +30,12 @@ const ProtectedRoute = ({ children, allowedRole }: { children: React.ReactNode, 
   return <>{children}</>;
 };
 
-// 2. The Content of the App (Routes)
 const AppContent: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<LApp />} />
-      {/* Public Login Route */}
       <Route path="/auth" element={<AuthPage />} />
 
-      {/* Protected Client Dashboard */}
       <Route 
         path="/client-dashboard" 
         element={
@@ -54,7 +47,6 @@ const AppContent: React.FC = () => {
         } 
       />
 
-      {/* Protected Provider Dashboard */}
       <Route 
         path="/provider-dashboard" 
         element={
@@ -66,14 +58,12 @@ const AppContent: React.FC = () => {
         } 
       />
       
-      {/* Catch-all: Redirect to Login */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
 
-// 3. The Root App Component
-// VITAL: StoreProvider MUST wrap AppContent here
+
 const App: React.FC = () => {
   return (
     <BrowserRouter>

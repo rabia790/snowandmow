@@ -1,10 +1,10 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
-import { Snowflake, Sun, Menu, X, CheckCircle, Zap, ShieldCheck, Wallet, DollarSign, CalendarCheck, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
-
-// --- Custom Tailwind Class & Style Definitions (Equivalent to <style> block) ---
-// Note: In a real app, the CSS for 'text-gradient' and 'nav-link' hover would be in index.css or a dedicated style file.
-// For this example, we will inject the style object and use inline styles for the gradient.
+import React, { useState, useEffect } from 'react';
+import { 
+  Snowflake, Sun, Menu, X, CheckCircle, Zap, 
+  ShieldCheck, Wallet, DollarSign, CalendarCheck, 
+  MapPin,
+  Mail, Send, Loader2 
+} from 'lucide-react';
 
 const customStyles = {
   // Equivalent to the CSS classes defined in the <style> block
@@ -117,7 +117,7 @@ const ValuePropCard = ({ icon: Icon, title, description, colorClass }) => (
 );
 
 const ValuePropositionSection = () => (
-  <section className="py-16 sm:py-24 bg-white" id="value-prop">
+  <section className="py-16 sm:py-24 bg-white scroll-mt-20" id="value-prop">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 className="text-3xl font-extrabold text-slate-900 text-center mb-12">
         Snow & Mow: Service, Solved Simply.
@@ -157,7 +157,7 @@ const HowItWorksStep = ({ number, title, description, bgColor }) => (
 );
 
 const HowItWorksSection = () => (
-  <section className="py-16 sm:py-24 bg-slate-100" id="how-it-works">
+  <section className="py-16 sm:py-24 bg-slate-100 scroll-mt-20" id="how-it-works">
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 className="text-3xl font-extrabold text-slate-900 text-center mb-16">
         Your 3-Step Service Request
@@ -190,7 +190,7 @@ const HowItWorksSection = () => (
 );
 
 const ProviderPitchSection = () => (
-  <section className="py-24 sm:py-32 bg-white" id="provider-pitch">
+  <section className="py-24 sm:py-32 bg-white scroll-mt-20" id="provider-pitch">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div className="order-2 lg:order-1">
@@ -230,10 +230,65 @@ const ProviderPitchSection = () => (
   </section>
 );
 
+const ContactSection = () => {
+  const [formState, setFormState] = useState({ name: '', email: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+const handleSubmit = (e) => {
+
+  e.preventDefault();
+  const { name, email, message } = formState;
+  const subject = encodeURIComponent(`Inquiry from ${name}`);
+  const body = encodeURIComponent(
+    `Name: ${name}\n` +
+    `Email: ${email}\n\n` +
+    `Message:\n${message}`
+  );
+  const mailtoLink = `mailto:manager@cygnisoft.com?subject=${subject}&body=${body}`;
+  window.location.href = mailtoLink;
+  setFormState({ name: '', email: '', message: '' });
+};
+
+  return (
+    <section className="py-24 bg-slate-50 scroll-mt-20" id="contact">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">Get in Touch</h2>
+          <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">Have questions about a service or interested in partnering? Send us a message.</p>
+        </div>
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden md:flex">
+          <div className="bg-slate-900 p-10 text-white md:w-2/5 flex flex-col justify-between relative overflow-hidden">
+            <div className="relative z-10">
+              <h3 className="text-xl font-bold mb-8">Contact Information</h3>
+              <div className="space-y-8">
+                <div className="flex items-start space-x-4">
+                  <Mail className="w-6 h-6 text-blue-400 mt-1" />
+                  <div><p className="font-medium text-slate-300 text-sm uppercase">Email</p><p className="text-white text-lg">manager@cygnisoft.com</p></div>
+                </div>
+              
+              </div>
+            </div>
+         
+          </div>
+          <div className="p-10 md:w-3/5">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div><label className="block text-sm font-medium text-slate-700 mb-2">Full Name</label><input type="text" required className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none" value={formState.name} onChange={(e) => setFormState({...formState, name: e.target.value})} /></div>
+              <div><label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label><input type="email" required className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none" value={formState.email} onChange={(e) => setFormState({...formState, email: e.target.value})} /></div>
+              <div><label className="block text-sm font-medium text-slate-700 mb-2">Message</label><textarea required rows={4} className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none resize-none" value={formState.message} onChange={(e) => setFormState({...formState, message: e.target.value})}></textarea></div>
+              <button type="submit" disabled={isSubmitting} className="w-full bg-slate-900 text-white font-bold py-4 px-6 rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center space-x-2 disabled:opacity-70">{isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><span className="mr-2">Send Message</span><Send className="w-5 h-5" /></>}</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+
 const Footer = () => (
   <footer className="bg-slate-800 py-12" id="contact">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Logo & Mission */}
         <div>
           <a href="#" className="flex items-center space-x-2 mb-4">
@@ -244,7 +299,7 @@ const Footer = () => (
           <p className="text-sm text-slate-400">Making yard maintenance effortless for homeowners and profitable for Pros.</p>
         </div>
 
-        {/* Company Links */}
+        {/* Company Links 
         <div>
           <h4 className="font-bold mb-3">Company</h4>
           <ul className="space-y-2 text-sm text-slate-400">
@@ -254,7 +309,7 @@ const Footer = () => (
           </ul>
         </div>
 
-        {/* Legal Links */}
+       
         <div>
           <h4 className="font-bold mb-3">Legal</h4>
           <ul className="space-y-2 text-sm text-slate-400">
@@ -262,17 +317,12 @@ const Footer = () => (
             <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
             <li><a href="#" className="hover:text-white transition-colors">Service Guarantee</a></li>
           </ul>
-        </div>
+        </div>*/}
 
         {/* Contact & Social */}
         <div>
           <h4 className="font-bold mb-3">Connect</h4>
-          <p className="text-sm text-slate-400 mb-4">Email: hello@snowmow.ca</p>
-          <div className="flex space-x-4">
-            <a href="#" className="text-slate-400 hover:text-blue-400 transition-colors"><Facebook className="w-6 h-6" /></a>
-            <a href="#" className="text-slate-400 hover:text-blue-400 transition-colors"><Instagram className="w-6 h-6" /></a>
-            <a href="#" className="text-slate-400 hover:text-blue-400 transition-colors"><Twitter className="w-6 h-6" /></a>
-          </div>
+          <p className="text-sm text-slate-400 mb-4">Email: manager@cygnisoft.com</p>
         </div>
       </div>
       <div className="mt-12 border-t border-slate-700 pt-6 text-center text-sm text-slate-500">
@@ -287,8 +337,7 @@ const Footer = () => (
 
 const LApp = () => {
   useEffect(() => {
-    // This is where you might initialize third-party scripts.
-    // Since lucide-react is used, we don't need the original lucide.createIcons();
+    document.documentElement.classList.add('scroll-smooth');
   }, []);
 
   return (
@@ -300,6 +349,7 @@ const LApp = () => {
         <ValuePropositionSection />
         <HowItWorksSection />
         <ProviderPitchSection />
+         <ContactSection />
       </main>
       <Footer />
     </div>

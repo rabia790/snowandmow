@@ -6,6 +6,8 @@ import {
   Mail, Send, Loader2 
 } from 'lucide-react';
 
+import providerJobsImg from '../img/providerjobs.png';
+
 const customStyles = {
   // Equivalent to the CSS classes defined in the <style> block
   heroBg: {
@@ -187,7 +189,7 @@ const ProviderPitchSection = () => (
         </div>
         <div className="order-1 lg:order-2">
           <img
-            src="https://placehold.co/600x400/1e293b/ffffff?text=Provider+Job+Acceptance+Screen"
+            src={providerJobsImg}
             alt="Provider dashboard interface"
             className="rounded-2xl shadow-2xl border-4 border-white transform rotate-3 hover:rotate-0 transition-transform duration-500"
           />

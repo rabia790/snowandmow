@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { StoreProvider, useStore } from './context/StoreContext';
 import Layout from './components/Layout';
@@ -31,6 +31,27 @@ const ProtectedRoute = ({ children, allowedRole }: { children: React.ReactNode, 
 };
 
 const AppContent: React.FC = () => {
+
+  useEffect(() => {
+    const sendHeight = () => {
+      setTimeout(() => {
+        const height = document.body.scrollHeight;
+        window.parent.postMessage({ frameHeight: height }, '*');
+      }, 100); 
+    };
+
+    sendHeight();
+    window.addEventListener('resize', sendHeight);
+    const observer = new MutationObserver(sendHeight);
+    observer.observe(document.body, { attributes: true, childList: true, subtree: true });
+
+    return () => {
+      window.removeEventListener('resize', sendHeight);
+      observer.disconnect();
+    };
+  }, []);
+
+
   return (
     <Routes>
       <Route path="/" element={<LApp />} />

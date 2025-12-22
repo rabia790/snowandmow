@@ -44,36 +44,29 @@ const ClientDashboard: React.FC = () => {
 
 useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const paymentSuccess = params.get('payment_status') === 'success';
+    const isSuccess = params.get('payment_status') === 'success';
     const paidJobId = params.get('job_id'); 
 
-    // ONLY proceed if we have a valid user and the URL params
-    if (paymentSuccess && paidJobId && user) {
-        const updateJobStatus = async () => {
-            console.log("Verifying payment for job:", paidJobId);
-
+    if (isSuccess && paidJobId && user) {
+        const syncPayment = async () => {
+            // This 'update' will only work if your Supabase RLS allows it
             const { data, error } = await supabase
                 .from('jobs')
                 .update({ payment_status: 'PAID' }) 
                 .eq('id', paidJobId)
-                .select(); // .select() is critical to confirm the update worked
+                .select(); // Critical: checks if the row was actually found
 
-            if (error) {
-                console.error("Supabase Error:", error.message);
-            } else if (data && data.length > 0) {
-                console.log("Database updated successfully!");
-                // Clear URL so it doesn't run again on refresh
+            if (data && data.length > 0) {
+                // Only clear the URL if the database actually updated
                 window.history.replaceState({}, document.title, window.location.pathname);
-                // Refresh local list
                 fetchMyJobs(); 
-            } else {
-                console.warn("No job found with that ID or you don't have permission to update it.");
+            } else if (error) {
+                console.error("Database rejected update:", error.message);
             }
         };
-
-        updateJobStatus();
+        syncPayment();
     }
-}, [user]); // user is the primary dependency
+}, [user, jobs.length]); // Re-run if jobs list changes
 
 const handleCreate = async () => {
     if (!user) {

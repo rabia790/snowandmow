@@ -47,24 +47,33 @@ useEffect(() => {
     const paymentSuccess = params.get('payment_status') === 'success';
     const paidJobId = params.get('job_id'); 
 
-    if (paymentSuccess && paidJobId) {
-        window.history.replaceState({}, document.title, window.location.pathname);
+    // ONLY proceed if we have a valid user and the URL params
+    if (paymentSuccess && paidJobId && user) {
         const updateJobStatus = async () => {
-            const { error } = await supabase
-                .from('jobs') 
+            console.log("Verifying payment for job:", paidJobId);
+
+            const { data, error } = await supabase
+                .from('jobs')
                 .update({ payment_status: 'PAID' }) 
-                .eq('id', paidJobId);
+                .eq('id', paidJobId)
+                .select(); // .select() is critical to confirm the update worked
 
             if (error) {
-                console.error("Failed to update database:", error);
-            } else {
+                console.error("Supabase Error:", error.message);
+            } else if (data && data.length > 0) {
+                console.log("Database updated successfully!");
+                // Clear URL so it doesn't run again on refresh
+                window.history.replaceState({}, document.title, window.location.pathname);
+                // Refresh local list
                 fetchMyJobs(); 
+            } else {
+                console.warn("No job found with that ID or you don't have permission to update it.");
             }
         };
 
         updateJobStatus();
     }
-}, [user]); 
+}, [user]); // user is the primary dependency
 
 const handleCreate = async () => {
     if (!user) {

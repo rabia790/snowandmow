@@ -41,7 +41,6 @@ const ClientDashboard: React.FC = () => {
     if (error) console.error("Error loading jobs:", error);
     else setJobs(data || []);
   };
-// Inside ClientDashboard.tsx, near your existing useEffect hook
 
 useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -50,12 +49,22 @@ useEffect(() => {
 
     if (paymentSuccess && paidJobId) {
         window.history.replaceState({}, document.title, window.location.pathname);
-        const updatedJobs = jobs.map(job => 
-            job.id === paidJobId ? { ...job, payment_status: 'PAID' } : job
-        );
-        setJobs(updatedJobs);  
+        const updateJobStatus = async () => {
+            const { error } = await supabase
+                .from('jobs') 
+                .update({ payment_status: 'PAID' }) 
+                .eq('id', paidJobId);
+
+            if (error) {
+                console.error("Failed to update database:", error);
+            } else {
+                fetchMyJobs(); 
+            }
+        };
+
+        updateJobStatus();
     }
-}, [jobs, fetchMyJobs]);
+}, [user]); 
 
 const handleCreate = async () => {
     if (!user) {

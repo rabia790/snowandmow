@@ -48,7 +48,6 @@ useEffect(() => {
     const rawJobId = params.get('job_id'); 
 
     if (paymentSuccess && rawJobId && user) {
-        // CLEAN THE ID: This removes everything after the first '?'
         const cleanJobId = rawJobId.split('?')[0];
 
         const updateJobStatus = async () => {
@@ -57,14 +56,12 @@ useEffect(() => {
             const { data, error } = await supabase
                 .from('jobs')
                 .update({ payment_status: 'PAID' }) 
-                .eq('id', cleanJobId) // Sending a clean UUID string
+                .eq('id', cleanJobId) 
                 .select();
 
             if (error) {
                 console.error("Database Error:", error.message);
             } else if (data && data.length > 0) {
-                console.log("Success! Database updated.");
-                // Clear URL and refresh local state
                 window.history.replaceState({}, document.title, window.location.pathname);
                 fetchMyJobs(); 
             } else {

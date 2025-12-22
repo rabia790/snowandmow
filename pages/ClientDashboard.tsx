@@ -44,29 +44,37 @@ const ClientDashboard: React.FC = () => {
 
 useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const isSuccess = params.get('payment_status') === 'success';
-    const paidJobId = params.get('job_id'); 
+    const paymentSuccess = params.get('payment_status') === 'success';
+    const rawJobId = params.get('job_id'); 
 
-    if (isSuccess && paidJobId && user) {
-        const syncPayment = async () => {
-            // This 'update' will only work if your Supabase RLS allows it
+    if (paymentSuccess && rawJobId && user) {
+        // CLEAN THE ID: This removes everything after the first '?'
+        const cleanJobId = rawJobId.split('?')[0];
+
+        const updateJobStatus = async () => {
+            console.log("Attempting update with Clean ID:", cleanJobId);
+
             const { data, error } = await supabase
                 .from('jobs')
                 .update({ payment_status: 'PAID' }) 
-                .eq('id', paidJobId)
-                .select(); // Critical: checks if the row was actually found
+                .eq('id', cleanJobId) // Sending a clean UUID string
+                .select();
 
-            if (data && data.length > 0) {
-                // Only clear the URL if the database actually updated
+            if (error) {
+                console.error("Database Error:", error.message);
+            } else if (data && data.length > 0) {
+                console.log("Success! Database updated.");
+                // Clear URL and refresh local state
                 window.history.replaceState({}, document.title, window.location.pathname);
                 fetchMyJobs(); 
-            } else if (error) {
-                console.error("Database rejected update:", error.message);
+            } else {
+                console.warn("Update ran but 0 rows changed. Ensure your RLS policy allows UPDATE.");
             }
         };
-        syncPayment();
+
+        updateJobStatus();
     }
-}, [user, jobs.length]); // Re-run if jobs list changes
+}, [user]);
 
 const handleCreate = async () => {
     if (!user) {
